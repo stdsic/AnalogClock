@@ -1,34 +1,35 @@
 /*
-	혼자 사용할 용도로 만들었기 때문에 README 파일을 만들 생각이 없습니다.
-	다만, 혹시 모를 사용자를 위해 주석을 남깁니다.
+   혼자 사용할 용도로 만들었기 때문에 README 파일을 만들 생각이 없습니다.
+   다만, 혹시 모를 사용자를 위해 주석을 남깁니다.
 
-	정책 변경으로 인해 Win32 프로그램은 원래 환경과 다른 환경에서 실행될 경우
-	윈도우 디펜스에 막히며 간혹, 트로이 목마 프로그램이라 오인하는 경우가 있습니다.
+   정책 변경으로 인해 Win32 프로그램은 원래 환경과 다른 환경에서 실행될 경우
+   윈도우 디펜스에 막히며 간혹, 트로이 목마 프로그램이라 오인하는 경우가 있습니다.
 
-	때문에 실행 파일을 따로 올리지 않으며 코드를 읽을 줄 아시는 분들께만 권장드립니다.
+   때문에 실행 파일을 따로 올리지 않으며 코드를 읽을 줄 아시는 분들께만 권장드립니다.
 
-	이 프로그램은 gcc 환경에서 제작되었으며 윈도우 운영체제와 함께 배포되는 msimg32 드라이브(DLL)가 필요합니다(기본 포함).
+   이 프로그램은 gcc 환경에서 제작되었으며 윈도우 운영체제와 함께 배포되는 msimg32 드라이브(DLL)가 필요합니다(기본 포함).
 
-	배경이 투명한 단순 아날로그 시계 프로그램으로, 운영체제에서 지원하는 GDI 함수만을 이용합니다.
-	곧, 시스템적 변경 사항이 전혀 없습니다.
+   배경이 투명한 단순 아날로그 시계 프로그램으로, 운영체제에서 지원하는 GDI 함수만을 이용합니다.
+   곧, 시스템적 변경 사항이 전혀 없습니다.
 
-	GNU 컴파일러로 빌드하는 프로그램이며 빌드 구문은 다음과 같습니다.
-	g++ -o AnlogClock.exe AnalogClock.cpp -mwindows -lmsimg32
+   GNU 컴파일러로 빌드하는 프로그램이며 빌드 구문은 다음과 같습니다.
+   g++ -o AnlogClock.exe AnalogClock.cpp -mwindows -lmsimg32
 
-	기존엔 다중 모니터를 지원하지 않는 프로그램이었으나, 작성자가 다중 모니터를 사용하게 되어 관련 기능을 추가하였습니다.
+   기존엔 다중 모니터를 지원하지 않는 프로그램이었으나, 작성자가 다중 모니터를 사용하게 되어 관련 기능을 추가하였습니다.
 
-	지원되는 기능은 다음과 같습니다.
-	1. F1 : 현재 모니터의 좌상단으로 이동합니다.
-	2. F2 : 현재 모니터의 우상단으로 이동합니다.
-	3. F3 : 현재 모니터의 좌하단으로 이동합니다.
-	4. F4 : 현재 모니터의 우하단으로 이동합니다.
-	5. Ctrl + 0, Ctrl + Numpad(0): 다음 모니터를 검색합니다. 곧, 프로그램이 다음 모니터로 이동합니다.
+   지원되는 기능은 다음과 같습니다.
+   1. F1 : 현재 모니터의 좌상단으로 이동합니다.
+   2. F2 : 현재 모니터의 우상단으로 이동합니다.
+   3. F3 : 현재 모니터의 좌하단으로 이동합니다.
+   4. F4 : 현재 모니터의 우하단으로 이동합니다.
+   5. Ctrl + 0, Ctrl + Numpad(0): 다음 모니터를 검색합니다. 곧, 프로그램이 다음 모니터로 이동합니다.
 
-	추후 현재 날짜를 보여주거나, 마지막 위치를 기억하는 등의 기능이 추가될 수 있습니다. 
-	25.05.06, 08:12(PM) 최종 수정
-*/
+   추후 현재 날짜를 보여주거나, 마지막 위치를 기억하는 등의 기능이 추가될 수 있습니다. 
+   25.05.06, 08:12(PM) 최종 수정
+ */
 
 #include <windows.h>
+#include <dbt.h>
 #include <math.h>
 #define CLASS_NAME TEXT("AnalogClock from Windows")
 
@@ -48,6 +49,7 @@ void OnMouseMove(HWND hWnd, WPARAM wParam, LPARAM lParam);
 void OnSize(HWND hWnd, WPARAM wParam, LPARAM lParam);
 void OnQueryEndSession(HWND hWnd, WPARAM wParam, LPARAM lParam);
 void OnDisplayChange(HWND hWnd, WPARAM wParam, LPARAM lParam);
+void OnDeviceChange(HWND hWnd, WPARAM wParam, LPARAM lParam);
 HRESULT OnNcHitTest(HWND hWnd, WPARAM wParam, LPARAM lParam);
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam);
@@ -69,15 +71,15 @@ int APIENTRY WinMain(HINSTANCE hInst, HINSTANCE, LPSTR, int nCmdShow){
 	RegisterClassEx(&wcex);
 
 	HWND hWnd = CreateWindowEx(
-				WS_EX_CLIENTEDGE | WS_EX_TOPMOST | WS_EX_LAYERED,
-				CLASS_NAME,
-				CLASS_NAME,
-				WS_POPUP, //WS_OVERLAPPEDWINDOW,
-				CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
-				NULL,
-				(HMENU)NULL,
-				hInst,
-				NULL
+			WS_EX_CLIENTEDGE | WS_EX_TOPMOST | WS_EX_LAYERED,
+			CLASS_NAME,
+			CLASS_NAME,
+			WS_POPUP, //WS_OVERLAPPEDWINDOW,
+			CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
+			NULL,
+			(HMENU)NULL,
+			hInst,
+			NULL
 			);
 
 	ShowWindow(hWnd, nCmdShow);
@@ -120,6 +122,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 		case WM_DISPLAYCHANGE:
 			OnDisplayChange(hWnd, wParam, lParam);
 			return 0;
+
+		case WM_DEVICECHANGE:
+			OnDeviceChange(hWnd, wParam, lParam);
+			break;
 
 		case WM_DESTROY:
 			OnDestroy(hWnd, wParam, lParam);
@@ -303,7 +309,7 @@ void OnTimer(HWND hWnd, WPARAM wParam, LPARAM lParam){
 
 BOOL CALLBACK MonitorEnumProc(HMONITOR hMonitor, HDC hdc, LPRECT lprcMonitor, LPARAM dwData){
 	MONITORINFOEX mi;
-	
+
 	bFind = TRUE;
 	mi.cbSize = sizeof(MONITORINFOEX);
 	GetMonitorInfo(hMonitor, &mi);
@@ -420,7 +426,7 @@ void DrawClock(HWND hWnd, HDC hdc){
 	float Quadrant = 270.f, Arc = 180.f, Circular = Arc * 2, x, y;
 
 	GetClientRect(hWnd, &crt);
-	
+
 	HBRUSH Mask = CreateSolidBrush(Attr.rgb);
 	FillRect(hdc, &crt, Mask);
 
@@ -488,4 +494,50 @@ void DrawClock(HWND hWnd, HDC hdc){
 
 void OnDisplayChange(HWND hWnd, WPARAM wParam, LPARAM lParam) {
 	EnumDisplayMonitors(NULL, NULL, MonitorEnumProc, (LPARAM)&rtMultipleMonitor);
+}
+
+void OnDeviceChange(HWND hWnd, WPARAM wParam, LPARAM lParam) {
+
+	/*
+	   BOOL EnumDisplayDevices(
+	   LPCTSTR lpDevice,				// NULL이면 기본 디스플레이 목록 조회
+	   DWORD iDevNum,					// 조회할 장치의 인덱스
+	   PDISPLAY_DEVICE lpDisplayDevice, // 결과를 받을 구조체
+	   DWORD dwFlags					// 일반적으로 0
+	   );
+	 */
+
+	/*
+	   typedef struct _DISPLAY_DEVICE {
+	   DWORD cb;              // 구조체 크기 (반드시 설정해야 함)
+	   TCHAR DeviceName[32];  // 디스플레이 이름
+	   TCHAR DeviceString[128]; // 디바이스 설명 (모델명 등)
+	   DWORD StateFlags;      // 현재 상태 플래그 (활성화 여부 등)
+	   TCHAR DeviceID[128];   // PnP 디바이스 ID
+	   TCHAR DeviceKey[128];  // 레지스트리 경로
+	   } DISPLAY_DEVICE;
+	 */
+
+	DEV_BROADCAST_HDR *hdr = (DEV_BROADCAST_HDR*)lParam;
+	DISPLAY_DEVICE dd = {0,};
+
+	int idx = 0,
+		CurrentMonitors = 0;
+	switch(wParam){
+		case DBT_DEVNODES_CHANGED:
+		case DBT_DEVICEARRIVAL:
+			dd.cb = sizeof(dd);
+			while(EnumDisplayDevices(NULL, idx, &dd, 0)){
+				if(dd.StateFlags & DISPLAY_DEVICE_ACTIVE){
+					CurrentMonitors++;
+				}
+				idx++;
+			}
+
+			if(cMonitors != CurrentMonitors){
+				cMonitors = CurrentMonitors;
+				EnumDisplayMonitors(NULL, NULL, MonitorEnumProc, (LPARAM)&rtMultipleMonitor);
+			}
+			break;
+	}
 }
