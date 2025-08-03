@@ -1,9 +1,9 @@
 ![아날로그 시계 프로그램 실행 화면 GIF](./Images/Analogclock.gif)
 
-🕰️ Transparent Analog Clock<br>
+# 🕰️ AnalogClock<br>
 Windows 레거시 API로 만든 투명 배경의 아날로그 시계입니다.<br>
 <br>
-🧾 Description<br>
+## 🧾 Description<br>
 "Analog Clock"은 배경이 완전히 투명한 시계이며 [F1 - F4]와 방향키를 이용하여 위치 및 크기를 조정할 수 있습니다.<br>
 시스템 트레이는 지원하지 않으며 외에 시스템과 관련된 어떠한 기능도 지원하지 않습니다. 시계는 항상 최상위에 떠 있으며, 작업에 방해가 되지 않도록 마우스를 인식하지 않게 설계되었습니다.<br>
 <br>
