@@ -1,3 +1,5 @@
+![GIF 설명](./Images/Analogclock_demo.gif)
+
 🕰️ Transparent Analog Clock
 Windows 레거시 API로 만든 투명 배경의 아날로그 시계입니다.
 
